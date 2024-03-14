@@ -1,6 +1,8 @@
 const express = require('express');
 const { MongoClient, ObjectId} = require('mongodb');
 const cors = require('cors');
+const axios = require('axios');
+require('dotenv').config();
 
 const app = express();
 app.use(express.json()); 
@@ -18,6 +20,10 @@ let customization;
 let history;
 let userCustomizationMapping;
 
+const weatherAPIKey = process.env.WEATHER_API_KEY
+const cityAPIKEY = process.env.CITY_API_KEY
+const openaiAPIKEY = process.env.AI_API_KEY
+
 MongoClient.connect(mongoUri)
     .then(client => {
 
@@ -32,6 +38,81 @@ MongoClient.connect(mongoUri)
     .catch(err => {
         console.error('Error connecting to MongoDB', err);
     });
+
+    async function getCityCoordinates(city) {
+        const apiKey = 'YOUR_API_KEY'; // Replace with your actual API key
+        const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=${cityAPIKEY}`;
+    
+        try {
+            const response = await axios.get(url);
+            const data = response.data;
+    
+            if (data.results.length > 0) {
+                const { lat, lng } = data.results[0].geometry;
+                return { latitude: lat, longitude: lng };
+            } else {
+                throw new Error('No results found');
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            throw error;
+        }
+    }
+
+    async function getWeatherData(city) {
+
+        try {
+            const cordinates = await getCityCoordinates(city)
+
+            const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${cordinates.latitude}&lon=${cordinates.longitude}&appid=${weatherAPIKey}`;
+            const response = await axios.get(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching weather data:', error);
+            throw error;
+        }
+
+    }
+
+    async function callOpenAiApi(prompt) {
+        const url = 'https://api.openai.com/v1/chat/completions';
+        const headers = {
+            'Authorization': `Bearer ${openaiAPIKEY}`,
+            'Content-Type': 'application/json'
+        };
+    
+        const data = {
+            model: 'gpt-3.5-turbo',
+            messages: [
+                {
+                role: 'user',
+                content: prompt
+                }
+            ],
+            max_tokens: 150
+        };
+    
+        try {
+            const response = await axios.post(url, data, { headers: headers });
+            return response.data.choices[0].message.content
+        } catch (error) {
+            console.error('Error calling OpenAI API:', error);
+            throw error;
+        }
+        
+    }
+
+    async function main() {
+        try {
+            const response = await callOpenAiApi("how are you doing");
+            console.log(response);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    
+    main();
+    
 
     app.post('/api/insert-user', async (req, res) => {
         try {
@@ -59,15 +140,39 @@ MongoClient.connect(mongoUri)
 
     app.post('/api/insert-customization', async (req, res) => {
         try {
-            const {bookRecommendation, mindfullnessQuote, joke, vocab, foreignLanguageWord, news, weather } = req.body;
+            const { googleId, bookRecommendation, mindfullnessQuote, joke, vocab, foreignLanguageWord, news, weather } = req.body;
+    
+            // Check if googleId exists in the user collection
+            const userExists = await user.findOne({ googleId: googleId });
+            if (!userExists) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+    
+            // Insert new customization
             const newCustomization = { bookRecommendation, mindfullnessQuote, joke, vocab, foreignLanguageWord, news, weather };
-            await customization.insertOne(newCustomization);
-            res.status(201).json(newCustomization);
+            const customizationResult = await customization.insertOne(newCustomization);
+            const customizationId = customizationResult.insertedId;
+    
+            // Update userCustomizationMapping collection
+            const filter = { googleId: googleId };
+            const update = { $set: { customizationId: customizationId } };
+            const options = { upsert: true, returnOriginal: false };
+    
+            const mappingResult = await userCustomizationMapping.findOneAndUpdate(filter, update, options);
+    
+            res.status(201).json({
+                message: 'Customization inserted and mapping updated',
+                customizationData: newCustomization,
+                mappingData: mappingResult.value
+            });
+    
         } catch (error) {
             console.error('Error occurred:', error);
-            res.status(500).json({ message: 'Error occurred while inserting customization data' });
+            res.status(500).json({ message: 'Error occurred while processing request' });
         }
     });
+    
+    
     
     app.post('/api/insert-history', async (req, res) => {
         try {
@@ -80,34 +185,7 @@ MongoClient.connect(mongoUri)
             res.status(500).json({ message: 'Error occurred while inserting history data' });
         }
     });
-
-    app.post('/api/update-user-customization-mapping', async (req, res) => {
-        try {
-            const { googleId, customizationId } = req.body;
-            if (!googleId || !customizationId) {
-                return res.status(400).json({ message: 'Missing required fields' });
-            }
     
-            const filter = { googleId: googleId };
-            const update = { $set: { customizationId: customizationId } };
-            const options = { upsert: true, returnOriginal: false }; // upsert = true to insert if not exists, returnOriginal: false to return the updated/inserted document
-    
-            const result = await userCustomizationMapping.findOneAndUpdate(filter, update, options);
-    
-            if (result.lastErrorObject && result.lastErrorObject.upserted) {
-                res.status(201).json({ message: 'New customization mapping created', data: result.value });
-            } else {
-                res.status(200).json({ message: 'Customization mapping updated', data: result.value });
-            }
-        } catch (error) {
-            console.error('Error occurred:', error);
-            res.status(500).json({ message: 'Error occurred while updating user customization mapping data' });
-        }
-    });
-    
-    
-
-
 const PORT = 4000; // You can choose any port
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
