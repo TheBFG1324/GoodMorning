@@ -115,7 +115,7 @@ async function generateBriefing(data) {
     const gptResponse = await callOpenAiApi(gptRequest)
     return gptResponse
 }
-
+/*
 const main = async () => {
     const data =
     {   name: "Lauren",
@@ -132,6 +132,7 @@ const main = async () => {
 }
 
 main();
+*/
 
 module.exports = {
     getCityCoordinates,

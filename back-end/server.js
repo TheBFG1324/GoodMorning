@@ -3,6 +3,8 @@ const sql = require('mssql');
 require('dotenv').config();
 const { v4: uuidv4 } = require('uuid');
 
+const { generateBriefing } = require('./api-functions/helperFunctions');
+
 const config = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -22,7 +24,6 @@ const config = {
 
 const app = express();
 app.use(express.json());
-
 
 sql.connect(config).then(pool => {
     
@@ -189,8 +190,8 @@ sql.connect(config).then(pool => {
             }
     
             // Call generateResponse() to generate the briefing string
-            const briefingString = generateResponse(briefingResult.recordset[0]);
-    
+            //const briefingString = generateBriefing();
+            const briefingString = "This is a test"
             // Generate a new UUID for the pastInstance
             const instanceId = uuidv4();
             
