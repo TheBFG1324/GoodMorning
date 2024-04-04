@@ -1,13 +1,12 @@
 const axios = require('axios');
 require('dotenv').config();
-
+const fs = require('fs').promises;
 
 const weatherAPIKey = process.env.WEATHER_API_KEY
 const cityAPIKEY = process.env.CITY_API_KEY
 const openaiAPIKEY = process.env.AI_API_KEY
 const newsAPIKEY = process.env.NEWS_API_KEY
-
-console.log(newsAPIKEY)
+const instructions = process.env.GPT_INSTRUCTIONS
 
 async function getCityCoordinates(city) {
     const apiKey = 'YOUR_API_KEY'; // Replace with your actual API key
@@ -29,6 +28,10 @@ async function getCityCoordinates(city) {
     }
 }
 
+function kelvinToFahrenheit(kelvin) {
+    return (kelvin - 273.15) * 9/5 + 32;
+}
+
 async function getWeatherData(city) {
 
     try {
@@ -36,7 +39,10 @@ async function getWeatherData(city) {
 
         const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${cordinates.latitude}&lon=${cordinates.longitude}&appid=${weatherAPIKey}`;
         const response = await axios.get(url);
-        return response.data;
+        const data = response.data;
+        const temp = kelvinToFahrenheit(data.current.temp)
+        const summary = data.current.weather[0].description
+        return "Tempature outside is (Fahrenheit) " + temp + " Weather is " + summary;
     } catch (error) {
         console.error('Error fetching weather data:', error);
         throw error;
@@ -46,6 +52,7 @@ async function getWeatherData(city) {
 
 async function callOpenAiApi(prompt) {
     const url = 'https://api.openai.com/v1/chat/completions';
+
     const headers = {
         'Authorization': `Bearer ${openaiAPIKEY}`,
         'Content-Type': 'application/json'
@@ -59,7 +66,7 @@ async function callOpenAiApi(prompt) {
             content: prompt
             }
         ],
-        max_tokens: 150
+        max_tokens: 500
     };
 
     try {
@@ -81,7 +88,11 @@ const fetchTopHeadlines = async () => {
             }
         });
 
-        console.log(response.data);
+        const data = response.data
+        const articles = data.articles
+        const titles = articles.map(article => article.title);
+
+        return titles;
         
     } catch (error) {
         console.error('Error fetching top headlines:', error);
@@ -89,16 +100,42 @@ const fetchTopHeadlines = async () => {
 };
 
 
-function generateResponse(briefingData) {
-    // Mockup function for generateResponse. Replace this with actual logic.
-    return `Response generated based on briefing data: ${JSON.stringify(briefingData)}`;
+async function generateBriefing(data) {
+    if(data.weather){
+        const weatherData = await getWeatherData(data.city)
+        data.weatherData = weatherData
+    }
+
+    if(data.news){
+        const news = await fetchTopHeadlines();
+        data.newsArticles = news
+    }
+
+    const gptRequest = "INSTRUCTIONS:\n" + instructions + "\nDATA INFORMATION:\n" + JSON.stringify(data);
+    const gptResponse = await callOpenAiApi(gptRequest)
+    return gptResponse
 }
 
-fetchTopHeadlines();
+const main = async () => {
+    const data =
+    {   name: "Lauren",
+        bookRec: "Poem",
+        mindfulnessQuote: true,
+        joke: true,
+        vocabWord: true,
+        foreignWord: "Spanish",
+        news: true,
+        weather: true,
+        city: "Lawrence"
+    }
+    const response = await generateBriefing(data)
+}
+
+main();
 
 module.exports = {
     getCityCoordinates,
     getWeatherData,
     callOpenAiApi,
-    generateResponse
+    generateBriefing
 };
