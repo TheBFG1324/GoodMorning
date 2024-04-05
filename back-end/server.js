@@ -42,13 +42,12 @@ sql.connect(config).then(pool => {
     
             // Extract user data from the request body
             const { googleId, firstName, lastName, email, birthday, city } = req.body.user;
-    
             // Insert user data into the user table
             const userQuery = `
-                INSERT INTO user (googleId, firstName, lastName, email, birthday, city)
+                INSERT INTO "user" (googleId, firstName, lastName, email, birthday, city)
                 VALUES (@googleId, @firstName, @lastName, @email, @birthday, @city)
             `;
-    
+
             await transaction.request()
                 .input('googleId', sql.NVarChar, googleId)
                 .input('firstName', sql.NVarChar, firstName)
@@ -70,33 +69,36 @@ sql.connect(config).then(pool => {
     
             await transaction.request()
                 .input('customizationId', sql.NVarChar, customizationId)
-                .input('bookRec', sql.NVarChar, bookRec)
-                .input('mindfulnessQuote', sql.NVarChar, mindfulnessQuote)
-                .input('joke', sql.NVarChar, joke)
-                .input('vocabWord', sql.NVarChar, vocabWord)
+                .input('bookRec', sql.Bit, bookRec)
+                .input('mindfulnessQuote', sql.Bit, mindfulnessQuote)
+                .input('joke', sql.Bit, joke)
+                .input('vocabWord', sql.Bit, vocabWord)
                 .input('foreignWord', sql.NVarChar, foreignWord)
-                .input('news', sql.NVarChar, news)
-                .input('weather', sql.NVarChar, weather)
+                .input('news', sql.Bit, news)
+                .input('weather', sql.Bit, weather)
                 .query(customizationQuery);
+
     
             // Insert a record into the has table
             const hasQuery = `
                 INSERT INTO has (googleId, customizationId)
                 VALUES (@googleId, @customizationId)
             `;
-    
+            
             await transaction.request()
                 .input('googleId', sql.NVarChar, googleId)
                 .input('customizationId', sql.NVarChar, customizationId)
                 .query(hasQuery);
-    
+            
             await transaction.commit();
+            
             res.status(201).send('User and customization enrolled successfully');
         } catch (err) {
             await transaction.rollback();
             res.status(500).send('Error enrolling user: ' + err.message);
         }
     });
+    
     
 
     // Route to change a user's customization
@@ -108,7 +110,7 @@ sql.connect(config).then(pool => {
             // Extract googleId and new customization data from the request body
             const { googleId, customizationData } = req.body;
             const { bookRec, mindfulnessQuote, joke, vocabWord, foreignWord, news, weather } = customizationData;
-    
+
             // Retrieve the current customizationId for the given googleId from the has table
             const currentCustomizationQuery = `SELECT customizationId FROM has WHERE googleId = @googleId`;
             const currentCustomizationResult = await transaction.request()
@@ -118,7 +120,7 @@ sql.connect(config).then(pool => {
             if (currentCustomizationResult.recordset.length === 0) {
                 throw new Error("No existing customization found for this user.");
             }
-    
+
             const currentCustomizationId = currentCustomizationResult.recordset[0].customizationId;
     
             // Generate a new UUID for the new customization
@@ -129,31 +131,31 @@ sql.connect(config).then(pool => {
                 INSERT INTO customization (customizationId, bookRec, mindfulnessQuote, joke, vocabWord, foreignWord, news, weather)
                 VALUES (@customizationId, @bookRec, @mindfulnessQuote, @joke, @vocabWord, @foreignWord, @news, @weather)
             `;
-    
+
             await transaction.request()
                 .input('customizationId', sql.NVarChar, newCustomizationId)
-                .input('bookRec', sql.NVarChar, bookRec)
-                .input('mindfulnessQuote', sql.NVarChar, mindfulnessQuote)
-                .input('joke', sql.NVarChar, joke)
-                .input('vocabWord', sql.NVarChar, vocabWord)
+                .input('bookRec', sql.Bit, bookRec)
+                .input('mindfulnessQuote', sql.Bit, mindfulnessQuote)
+                .input('joke', sql.Bit, joke)
+                .input('vocabWord', sql.Bit, vocabWord)
                 .input('foreignWord', sql.NVarChar, foreignWord)
-                .input('news', sql.NVarChar, news)
-                .input('weather', sql.NVarChar, weather)
+                .input('news', sql.Bit, news)
+                .input('weather', sql.Bit, weather)
                 .query(newCustomizationQuery);
-    
+            
+            
             // Update the has table with the new customizationId
             const updateHasQuery = `UPDATE has SET customizationId = @newCustomizationId WHERE googleId = @googleId`;
             await transaction.request()
                 .input('newCustomizationId', sql.NVarChar, newCustomizationId)
                 .input('googleId', sql.NVarChar, googleId)
                 .query(updateHasQuery);
-    
+            
             // Optionally, delete the old customization record if it's no longer needed
             const deleteOldCustomizationQuery = `DELETE FROM customization WHERE customizationId = @oldCustomizationId`;
             await transaction.request()
                 .input('oldCustomizationId', sql.NVarChar, currentCustomizationId)
                 .query(deleteOldCustomizationQuery);
-    
             await transaction.commit();
             res.status(200).send('Customization updated successfully');
         } catch (err) {
@@ -173,10 +175,10 @@ sql.connect(config).then(pool => {
     
             // SQL query to join user and customization based on the googleId
             const briefingQuery = `
-                SELECT u.firstName, u.lastName, u.email, u.birthday, u.city,
+                SELECT u.firstName, u.lastName, u.city,
                        c.bookRec, c.mindfulnessQuote, c.joke, c.vocabWord, c.foreignWord, c.news, c.weather
                 FROM has h
-                INNER JOIN user u ON h.googleId = u.googleId
+                INNER JOIN "user" u ON h.googleId = u.googleId
                 INNER JOIN customization c ON h.customizationId = c.customizationId
                 WHERE h.googleId = @googleId
             `;
@@ -186,12 +188,12 @@ sql.connect(config).then(pool => {
                 .query(briefingQuery);
     
             if (briefingResult.recordset.length === 0) {
-                throw new Error('No briefing found for this user.');
+                throw new Error('No data found for this user.');
             }
     
-            // Call generateResponse() to generate the briefing string
-            //const briefingString = generateBriefing();
-            const briefingString = "This is a test"
+            const userData = briefingResult.recordset[0]
+            const newBriefing = await generateBriefing(userData)
+            const briefingString = newBriefing
             // Generate a new UUID for the pastInstance
             const instanceId = uuidv4();
             
@@ -202,7 +204,7 @@ sql.connect(config).then(pool => {
             `;
             await transaction.request()
                 .input('instanceId', sql.NVarChar, instanceId)
-                .input('briefing', sql.NVarChar, briefingString)
+                .input('briefing', sql.Text, briefingString)
                 .query(pastInstanceQuery);
     
             // Add a record to the history table
@@ -229,7 +231,7 @@ sql.connect(config).then(pool => {
     app.get('/get-history/:googleId', async (req, res) => {
         try {
             const googleId = req.params.googleId;
-    
+            console.log(googleId);
             const query = `
                 SELECT h.date, p.instanceId, p.briefing
                 FROM history h
@@ -238,7 +240,14 @@ sql.connect(config).then(pool => {
                 ORDER BY h.date DESC
             `;
     
-            const result = await sql.query(query, { googleId });
+            // Create a new request object
+            const request = new sql.Request();
+    
+            // Add the googleId parameter to the request
+            request.input('googleId', sql.NVarChar, googleId);
+    
+            // Execute the query
+            const result = await request.query(query);
             
             if (result.recordset.length > 0) {
                 res.status(200).json(result.recordset);
@@ -251,6 +260,7 @@ sql.connect(config).then(pool => {
         }
     });
     
+    
 
     // Route to update user information
     app.put('/update-user/:googleId', async (req, res) => {
@@ -260,7 +270,7 @@ sql.connect(config).then(pool => {
             const userData = req.body;
     
             // Construct the SQL UPDATE statement dynamically based on the provided fields
-            let updateQuery = 'UPDATE user SET ';
+            let updateQuery = 'UPDATE "user" SET ';
             const updateFields = [];
             const requestKeys = Object.keys(userData);
     
@@ -287,7 +297,6 @@ sql.connect(config).then(pool => {
             res.status(500).send('Error updating user: ' + err.message);
         }
     });
-    
     
     
 }).catch(err => {

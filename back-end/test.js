@@ -55,39 +55,37 @@ async function updateUser(googleId, updatedUserData) {
 
 // Example data for testing purposes
 const userData = {
-    googleId: '12345',
+    googleId: '1',
     firstName: 'John',
     lastName: 'Doe',
     email: 'john.doe@example.com',
     birthday: '2000-01-01',
-    city: 'New York'
+    city: 'Lawrence'
 };
 
 const customizationData = {
-    bookRec: '1984',
-    mindfulnessQuote: 'In the moment...',
-    joke: 'Why did the chicken cross the road?',
-    vocabWord: 'Ephemeral',
-    foreignWord: 'Amour',
-    news: 'Today’s headline...',
-    weather: 'Sunny'
-};
-
-const newCustomizationData = {
-    bookRec: 'The Great Gatsby',
-    // ... other fields
+    bookRec: true,
+    mindfulnessQuote: true,
+    joke: true,
+    vocabWord: true,
+    foreignWord: "french",
+    news: true,
+    weather: true
 };
 
 const updatedUserData = {
-    firstName: 'Jane',
-    // ... other fields to update
+    firstName: 'John',
+    lastName: 'Danny',
+    email: 'john.doe@example.com',
+    birthday: '2000-01-01',
+    city: 'Berlin'
 };
 
 // Running the functions (you can comment out the ones you don't want to run)
 (async () => {
-    await enrollUser(userData, customizationData);
-    await changeCustomization(userData.googleId, newCustomizationData);
-    await getBriefing(userData.googleId);
-    await getHistory(userData.googleId);
+    //await enrollUser(userData, customizationData);
+    //await changeCustomization(userData.googleId, customizationData);
+    //await getBriefing(userData.googleId);
+    //await getHistory(userData.googleId);
     await updateUser(userData.googleId, updatedUserData);
 })();
