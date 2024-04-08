@@ -1,153 +1,204 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
-const MorningBriefing = () => {
+const MorningBriefing = ({ googleId }) => {
+  const [briefingData, setBriefingData] = useState(null);
+  const [rerenderTrigger, setRerenderTrigger] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    bookRec: true,
+    mindfulnessQuote: true,
+    joke: true,
+    vocabWord: true,
+    foreignWord: true,
+    news: true,
+    weather: true
+  });
 
-  const [weather, setWeather] = useState(null);
-  const [wordOfTheDay, setWordOfTheDay] = useState('');
-  const [foreignWord, setForeignWord] = useState('');
-  const [mindfulQuote, setMindfulQuote] = useState('');
-  const [jokeOfTheDay, setJokeOfTheDay] = useState('');
-  const [news, setNews] = useState('');
-  const [calendar, setCalendar] = useState('');
-  const [bookRec, setBookRec] = useState('');
-
-  const [tiles, setTiles] = useState([
-    { id: 'weather', title: 'Daily Weather', content: `Temperature: ${weather}°F`, visible: true },
-    { id: 'wordOfTheDay', title: 'Word of the Day', content: `${wordOfTheDay}`, visible: true },
-    { id: 'foreignWord', title: 'Foreign Word of the Day', content: `${foreignWord}`, visible: true },
-    { id: 'mindfulQuote', title: 'Mindfulness Quote of the Day', content: `${mindfulQuote}`, visible: true },
-    { id: 'jokeOfTheDay', title: 'Joke of the Day', content: `Need a laugh: ${jokeOfTheDay}`, visible: true },
-    { id: 'news', title: 'Daily News', content: `Today's Headlines: ${news}`, visible: true },
-    { id: 'calendar', title: 'Calendar', content: `Today's Schedule: ${calendar}`, visible: true },
-    { id: 'bookRec', title: 'Book Recommendation', content: `Here's your next read: ${bookRec}`, visible: true },
-]);
-
-
-useEffect(() => {
-  const fetchTilesData = async () => {
+  useEffect(() => {
+    const fetchData = async () => {
       try {
-          const weatherResponse = await axios.get('http://localhost:4000/api/weather');
-          console.log('Weather Response:', weatherResponse.data);
-          setWeather(weatherResponse.data);
-
-          const wordOfTheDayResponse = await axios.get('http://localhost:4000/api/word-of-the-day');
-          console.log('Weather Response:', wordOfTheDayResponse.data);
-          setWordOfTheDay(wordOfTheDayResponse.data.word);
-
-          const foreignWordResponse = await axios.get('http://localhost:4000/api/foreign_word_of_the_day')
-          console.log('Weather Response:', foreignWordResponse.data);
-          setForeignWord(foreignWordResponse.data.word);
-
-          const mindfulQuoteResponse = await axios.get('http://localhost:4000/api/mindful_quote');
-          console.log('Weather Response:', mindfulQuoteResponse.data);
-          setMindfulQuote(mindfulQuoteResponse.data);
-
-          const jokeOfTheDayResponse = await axios.get('http://localhost:4000/api/joke-of-the-day');
-          console.log('Weather Response:', jokeOfTheDayResponse.data);
-          setJokeOfTheDay(jokeOfTheDayResponse.data);
-
-          const newsResponse = await axios.get('http://localhost:4000/api/news-of-the-day');
-          console.log('Weather Response:', newsResponse.data);
-          setNews(newsResponse.data);
-
-          const calendarResponse = await axios.get('http://localhost:4000/api/calendar');
-          console.log('Weather Response:', calendarResponse.data);
-          setCalendar(calendarResponse.data);
-
-          const bookRecResponse = await axios.get('http://localhost:4000/api/book_rec');
-          console.log('Weather Response:', bookRecResponse.data);
-          setBookRec(bookRecResponse.data);
+        const response = await axios.get(`http://localhost:4000/get-briefing/${googleId}`);
+        setBriefingData(response.data);
       } catch (error) {
-          console.error('Error fetching tiles data:', error);
+        console.error('Error fetching briefing data:', error);
+        // For testing purposes, set default data
+        setBriefingData({
+          firstName: 'John',
+          lastName: 'Doe',
+          city: 'Lawrence',
+          weather: '75',
+          vocabWord: 'Serendipity',
+          foreignWord: 'Bonjour',
+          mindfulnessQuote: 'Be present in the moment.',
+          joke: 'Why was the math book sad? Because it had too many problems.',
+          news: 'Breaking news: New discovery in space.',
+          bookRec: 'The Alchemist by Paulo Coelho'
+        });
       }
+    };
+
+    fetchData();
+  }, [googleId, rerenderTrigger]);
+
+  const handleCustomizationUpdate = async () => {
+    try {
+      await axios.put(`http://localhost:4000/change-customization`, {
+        googleId,
+        customizationData: formData // Use formData instead of customizationData
+      });
+      alert('Customization updated successfully');
+      setRerenderTrigger(prev => !prev);
+      handleCloseModal(); // Close modal after successful update
+    } catch (error) {
+      console.error('Error updating customization:', error);
+      alert('Error updating customization');
+    }
   };
 
-  fetchTilesData();
-}, []);
+  const handleShowModal = () => setShowModal(true);
+  const handleCloseModal = () => setShowModal(false);
 
-const handleDelete = (tileId) => {
-  console.log('Deleting Tile ID:', tileId);
-  setTiles((prevTiles) =>
-      prevTiles.map((tile) =>
-          tile.id === tileId ? { ...tile, visible: false } : tile
-      )
-  );
-};
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
-
-const handleReset = () => {
-  // Reset all tiles to visible
-  setTiles((prevTiles) =>
-    prevTiles.map((tile) => ({ ...tile, visible: true }))
-  );
-};
-
-const handleDragEnd = (result) => {
-  if (!result.destination) return;
-
-  const sourceIndex = result.source.index;
-  const destinationIndex = result.destination.index;
-  console.log('Source Index:', sourceIndex);
-  console.log('Destination Index:', destinationIndex);
-
-  const reorderedTiles = Array.from(tiles);
-  const [removedTile] = reorderedTiles.splice(sourceIndex, 1);
-  reorderedTiles.splice(destinationIndex, 0, removedTile);
-  console.log('Reordered Tiles:', reorderedTiles);
-
-  setTiles(reorderedTiles);
-};
+  const handleSubmitForm = (e) => {
+    e.preventDefault();
+    handleCustomizationUpdate();
+  };
 
 
-return (
-  <div className='container mt-4'>
-    <h1>Morning Briefing</h1>
-    <DragDropContext onDragEnd={handleDragEnd}>
-  <Droppable droppableId='tiles'>
-    {(provided) => (
-      <div {...provided.droppableProps} ref={provided.innerRef} className='row'>
-        {tiles.map(({ id, title, content, visible }, index) => (
-          visible && ( // Render tile only if visible
-            <Draggable key={id} draggableId={id} index={index}>
-              {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.draggableProps}
-                  {...provided.dragHandleProps}
-                  className={`col-md-6 mb-4 ${snapshot.isDragging ? 'dragging' : ''}`}
-                  id={id}
-                >
-                  <div className='card'>
-                    <div className='card-body'>
-                      <button
-                        className='btn btn-sm btn-danger float-end'
-                        onClick={() => handleDelete(id)}
-                      >
-                        X
-                      </button>
-                      <h5 className='card-title'>{title}</h5>
-                      <p>{content}</p>
-                    </div>
+  return (
+    <div className='container mt-4'>
+      <h1>Morning Briefing</h1>
+      <div className='row row-cols-1 row-cols-md-2 g-4'>
+        {briefingData ? (
+          <>
+            <div className='col'>
+                <div className=''>
+                  <h5 className=''>Hello {briefingData.firstName} {briefingData.lastName} from {briefingData.city}</h5>
+                </div>
+            </div>
+            <div className='col'>
+            </div>
+            <div className='col'>
+              <div className='card'>
+                <div className='card-body'>
+                  <h5 className='card-title'>Daily Weather</h5>
+                  <p className='card-text'>Temperature: {briefingData.weather}°F</p>
+                </div>
+              </div>
+            </div>
+            <div className='col'>
+              <div className='card'>
+                <div className='card-body'>
+                  <h5 className='card-title'>Word of the Day</h5>
+                  <p className='card-text'>{briefingData.vocabWord}</p>
+                </div>
+              </div>
+            </div>
+            <div className='col'>
+              <div className='card'>
+                <div className='card-body'>
+                  <h5 className='card-title'>Foreign Word of the Day</h5>
+                  <p className='card-text'>{briefingData.foreignWord}</p>
+                </div>
+              </div>
+            </div>
+            <div className='col'>
+              <div className='card'>
+                <div className='card-body'>
+                  <h5 className='card-title'>Mindfulness Quote of the Day</h5>
+                  <p className='card-text'>{briefingData.mindfulnessQuote}</p>
+                </div>
+              </div>
+            </div>
+            <div className='col'>
+              <div className='card'>
+                <div className='card-body'>
+                  <h5 className='card-title'>Joke of the Day</h5>
+                  <p className='card-text'>Need a laugh: {briefingData.joke}</p>
+                </div>
+              </div>
+            </div>
+            <div className='col'>
+              <div className='card'>
+                <div className='card-body'>
+                  <h5 className='card-title'>Daily News</h5>
+                  <p className='card-text'>Today's Headlines: {briefingData.news}</p>
+                </div>
+              </div>
+            </div>
+            <div className='col'>
+              <div className='card'>
+                <div className='card-body'>
+                  <h5 className='card-title'>Book Recommendation</h5>
+                  <p className='card-text'>Here's your next read: {briefingData.bookRec}</p>
+                </div>
+              </div>
+            </div>
+            <div className='col'>
+              <button type="button" className="btn btn-large btn-primary" onClick={handleShowModal}>Customize Briefing</button>
+            </div>
+          </>
+        ) : (
+          <p>Loading...</p>
+        )}
+      </div>
+      {/* Modal */}
+      {showModal && (
+        <div className="modal" tabIndex="-1" role="dialog" style={{ display: 'block' }}>
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Customize Briefing</h5>
+                <button type="button" className="btn-close" aria-label="Close" onClick={handleCloseModal}></button>
+              </div>
+              <form onSubmit={handleSubmitForm}>
+                <div className="modal-body">
+                  <div className="mb-3">
+                    <label htmlFor="bookRec">Book Recommendation</label>
+                    <input type="checkbox" id="bookRec" name="bookRec" checked={formData.bookRec} onChange={handleFormChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="mindfulnessQuote">Mindfulness Quote</label>
+                    <input type="checkbox" id="mindfulnessQuote" name="mindfulnessQuote" checked={formData.mindfulnessQuote} onChange={handleFormChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="bookRec">Joke</label>
+                    <input type="checkbox" id="joke" name="joke" checked={formData.joke} onChange={handleFormChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="bookRec">Vocabulary Word</label>
+                    <input type="checkbox" id="vocabWord" name="vocabWord" checked={formData.vocabWord} onChange={handleFormChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="bookRec">Foreign Word</label>
+                    <input type="checkbox" id="foreignWord" name="foreignWord" checked={formData.foreignWord} onChange={handleFormChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="bookRec">News</label>
+                    <input type="checkbox" id="news" name="news" checked={formData.news} onChange={handleFormChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="bookRec">Weather</label>
+                    <input type="checkbox" id="weather" name="weather" checked={formData.weather} onChange={handleFormChange} />
                   </div>
                 </div>
-              )}
-            </Draggable>
-          )
-        ))}
-        {provided.placeholder}
-      </div>
-    )}
-  </Droppable>
-</DragDropContext>
-
-
-    <button className='btn btn-primary mt-3' onClick={handleReset}>
-      Reset Tiles
-    </button>
-  </div>
-);
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>Close</button>
+                  <button type="submit" className="btn btn-primary">Save changes</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default MorningBriefing;
+
