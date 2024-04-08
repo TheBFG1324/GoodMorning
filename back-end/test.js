@@ -1,6 +1,7 @@
 const axios = require('axios');
+require('dotenv').config();
 
-const baseUrl = 'http://localhost:3000'; // Replace with your server URL
+const baseUrl = process.env.SERVER_URL; // Replace with your server URL
 
 async function enrollUser(userData, customizationData) {
     try {
@@ -55,12 +56,12 @@ async function updateUser(googleId, updatedUserData) {
 
 // Example data for testing purposes
 const userData = {
-    googleId: '1',
-    firstName: 'John',
-    lastName: 'Doe',
+    googleId: '3',
+    firstName: 'Lauren',
+    lastName: 'Smelly',
     email: 'john.doe@example.com',
     birthday: '2000-01-01',
-    city: 'Lawrence'
+    city: 'Shawnee'
 };
 
 const customizationData = {
@@ -68,7 +69,7 @@ const customizationData = {
     mindfulnessQuote: true,
     joke: true,
     vocabWord: true,
-    foreignWord: "french",
+    foreignWord: "Arabic",
     news: true,
     weather: true
 };
@@ -87,5 +88,5 @@ const updatedUserData = {
     //await changeCustomization(userData.googleId, customizationData);
     //await getBriefing(userData.googleId);
     //await getHistory(userData.googleId);
-    await updateUser(userData.googleId, updatedUserData);
+    //await updateUser(userData.googleId, updatedUserData);
 })();
