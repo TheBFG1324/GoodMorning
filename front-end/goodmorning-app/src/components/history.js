@@ -1,29 +1,33 @@
 import React, { useState, useEffect } from 'react';
+import { useUser } from '../userContext';
 
-const HistoryComponent = ({ googleId }) => {
+const HistoryComponent = () => {
+  const { user } = useUser();
   const [historyData, setHistoryData] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await fetch(`/get-history/${googleId}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('No history found for this user.');
-          } else {
-            throw new Error('Internal server error.');
+    if (user) {
+      const fetchHistory = async () => {
+        try {
+          const response = await fetch(`/get-history/${user.googleId}`);
+          if (!response.ok) {
+            if (response.status === 404) {
+              throw new Error('No history found for this user.');
+            } else {
+              throw new Error('Internal server error.');
+            }
           }
+          const data = await response.json();
+          setHistoryData(data);
+        } catch (error) {
+          setError(error.message);
         }
-        const data = await response.json();
-        setHistoryData(data);
-      } catch (error) {
-        setError(error.message);
-      }
-    };
+      };
 
-    fetchHistory();
-  }, [googleId]);
+      fetchHistory();
+    }
+  }, [user]);
 
   return (
     <div>
@@ -41,6 +45,7 @@ const HistoryComponent = ({ googleId }) => {
       ) : (
         <p>No history data available.</p>
       )}
+      {error && <p>Error: {error}</p>}
     </div>
   );
 };

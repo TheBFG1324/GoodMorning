@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useUser } from '../userContext';
 
-const MorningBriefing = ({ googleId }) => {
+const MorningBriefing = () => {
+  const { user } = useUser();
   const [briefingData, setBriefingData] = useState(null);
   const [rerenderTrigger, setRerenderTrigger] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -17,38 +19,41 @@ const MorningBriefing = ({ googleId }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const response = await axios.get(`http://localhost:4000/get-briefing/${googleId}`);
-        setBriefingData(response.data);
-      } catch (error) {
-        console.error('Error fetching briefing data:', error);
-        // For testing purposes, set default data
-        setBriefingData({
-          firstName: 'John',
-          lastName: 'Doe',
-          city: 'Lawrence',
-          weather: '75',
-          vocabWord: 'Serendipity',
-          foreignWord: 'Bonjour',
-          mindfulnessQuote: 'Be present in the moment.',
-          joke: 'Why was the math book sad? Because it had too many problems.',
-          news: 'Breaking news: New discovery in space.',
-          bookRec: 'The Alchemist by Paulo Coelho'
-        });
+      if (user) {
+        try {
+          const response = await axios.get(`/get-briefing/${user.googleId}`);
+          setBriefingData(response.data);
+        } catch (error) {
+          console.error('Error fetching briefing data:', error);
+          // For testing purposes, set default data
+          setBriefingData({
+            firstName: 'John',
+            lastName: 'Doe',
+            city: 'Lawrence',
+            weather: '75',
+            vocabWord: 'Serendipity',
+            foreignWord: 'Bonjour',
+            mindfulnessQuote: 'Be present in the moment.',
+            joke: 'Why was the math book sad? Because it had too many problems.',
+            news: 'Breaking news: New discovery in space.',
+            bookRec: 'The Alchemist by Paulo Coelho',
+          });
+        }
       }
     };
 
     fetchData();
-  }, [googleId, rerenderTrigger]);
+  }, [user, rerenderTrigger]);
+
 
   const handleCustomizationUpdate = async () => {
     try {
-      await axios.put(`http://localhost:4000/change-customization`, {
-        googleId,
-        customizationData: formData // Use formData instead of customizationData
+      await axios.put(`/change-customization`, {
+        googleId: user.googleId,
+        customizationData: formData,
       });
       alert('Customization updated successfully');
-      setRerenderTrigger(prev => !prev);
+      setRerenderTrigger((prev) => !prev);
       handleCloseModal(); // Close modal after successful update
     } catch (error) {
       console.error('Error updating customization:', error);

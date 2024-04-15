@@ -16,7 +16,6 @@ const Navbar = () => {
   return (
     <div className="container mt-3">
       <nav className="navbar navbar-expand-lg navbar-light bg-light">
-        <a className="navbar-brand" href="#">LOGO</a>
         <button
           className="navbar-toggler"
           type="button"
@@ -37,6 +36,12 @@ const Navbar = () => {
               <a className="nav-link" href="#">Briefing</a>
             </li>
             <li
+              className={`nav-item ${activeTab === 'about' ? 'active' : ''}`}
+              onClick={() => handleTabChange('about')}
+            >
+              <a className="nav-link" href="#">About</a>
+            </li>
+            <li
               className={`nav-item ${activeTab === 'enroll' ? 'active' : ''}`}
               onClick={() => handleTabChange('enroll')}
             >
@@ -53,12 +58,6 @@ const Navbar = () => {
               onClick={() => handleTabChange('history')}
             >
               <a className="nav-link" href="#">History</a>
-            </li>
-            <li
-              className={`nav-item ${activeTab === 'about' ? 'active' : ''}`}
-              onClick={() => handleTabChange('about')}
-            >
-              <a className="nav-link" href="#">About</a>
             </li>
           </ul>
         </div>

@@ -1,31 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useUser } from '../userContext';
 
-const Account = ({ userData }) => {
+const Account = () => {
+  const { user } = useUser();
   const [formData, setFormData] = useState({
-    firstName: userData.firstName,
-    lastName: userData.lastName,
-    email: userData.email,
-    birthday: userData.birthday,
-    city: userData.city,
+    googleId: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    birthday: '',
+    city: '',
   });
   const [message, setMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-
   useEffect(() => {
-    if (userData) {
+    if (user) {
       setFormData({
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        email: userData.email || '',
-        birthday: userData.birthday || '',
-        city: userData.city || '',
+        googleId: user.googleId || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        birthday: user.birthday || '',
+        city: user.city || '',
       });
     } else {
       setErrorMessage('Error fetching user data.');
     }
-  }, [userData]);
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,55 +36,63 @@ const Account = ({ userData }) => {
       ...prevData,
       [name]: value,
     }));
-  };  
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.put(`/update-user/${userData.googleId}`, formData);
+      const response = await axios.put(`/update-user/${user.googleId}`, formData);
       console.log(response.data);
-      // Handle success message or other logic
+      setMessage('User data updated successfully!');
     } catch (error) {
       console.error('Error updating user:', error);
-      // Handle error message or other logic
+      setErrorMessage('Error updating user data.');
     }
   };
 
   return (
-    <div>
-      <h1>Account Page</h1>
-      {message && <p>{message}</p>}
-      <div>
+    <div className='container'>
+      <h1 className='mt-4'>Account Page</h1>
+      {errorMessage && <p className='text-danger'>{errorMessage}</p>}
+      <div className='mt-4'>
         <h2>User Data</h2>
-        <p>First Name: {userData.firstName}</p>
-        <p>Last Name: {userData.lastName}</p>
-        <p>Email: {userData.email}</p>
-        <p>Birthday: {userData.birthday}</p>
-        <p>City: {userData.city}</p>
+        {user ? (
+          <div>
+            <p>Google ID: {user.googleId}</p>
+            <p>First Name: {user.firstName}</p>
+            <p>Last Name: {user.lastName}</p>
+            <p>Email: {user.email}</p>
+            <p>Birthday: {user.birthday}</p>
+            <p>City: {user.city}</p>
+          </div>
+        ) : (
+          <p>No User Data Found!</p>
+        )}
       </div>
-      <form onSubmit={handleSubmit}>
-        <label>
-          First Name:
-          <input type="text" name="firstname" value={formData.firstName} onChange={handleChange} />
-        </label>
-        <label>
-          Last Name:
-          <input type="text" name="lastname" value={formData.lastName} onChange={handleChange} />
-        </label>
-        <label>
-          Email:
-          <input type="email" name="email" value={formData.email} onChange={handleChange} />
-        </label>
-        <label>
-          Birthday:
-          <input type="date" name="birthday" value={formData.birthday} onChange={handleChange} />
-        </label>
-        <label>
-          City:
-          <input type="text" name="city" value={formData.city} onChange={handleChange} />
-        </label>
-        <button type="submit">Update</button>
+      <form className="mt-4" onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label className="form-label">First Name:</label>
+          <input type="text" className="form-control" name="firstName" value={formData.firstName} onChange={handleChange} />
+        </div>
+        <div className="mb-3">
+          <label className="form-label">Last Name:</label>
+          <input type="text" className="form-control" name="lastName" value={formData.lastName} onChange={handleChange} />
+        </div>
+        <div className="mb-3">
+          <label className="form-label">Email:</label>
+          <input type="email" className="form-control" name="email" value={formData.email} onChange={handleChange} />
+        </div>
+        <div className="mb-3">
+          <label className="form-label">Birthday:</label>
+          <input type="date" className="form-control" name="birthday" value={formData.birthday} onChange={handleChange} />
+        </div>
+        <div className="mb-3">
+          <label className="form-label">City:</label>
+          <input type="text" className="form-control" name="city" value={formData.city} onChange={handleChange} />
+        </div>
+        <button type="submit" className="btn btn-primary">Update</button>
       </form>
+      {message && <p>{message}</p>}
     </div>
   );
 };

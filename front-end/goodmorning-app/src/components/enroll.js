@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useUser } from '../userContext';
 
 const EnrollUserForm = ({ updateMorningBriefing }) => {
+  const { updateUser } = useUser();
   const [user, setUser] = useState({
     googleId: '',
     firstName: '',
@@ -35,6 +37,7 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
       const response = await axios.post('/enroll-user', { user });
       console.log(response.data); // handle success response here
       setEnrolled(true);
+      updateUser(user); // Update user data in context
       updateMorningBriefing(user); // Pass user data to updateMorningBriefing function
     } catch (error) {
       console.error('Error enrolling user:', error);
@@ -42,13 +45,12 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
   };
 
   return (
-    <div className='container my-4'>
-      <div className="row justify-content-center">
-        <div className='col-md-6'>
-        <form onSubmit={handleSubmit}>
-        <h2 className='text-center'>Enroll Here</h2>
-        <div className="form-group">
-            <label htmlFor="googleId">Google ID:</label>
+    <div className='container'>
+      <h1 className='mt-4'>Enroll Page</h1>
+      <div className="mt-4">
+        <form className='mt-4' onSubmit={handleSubmit}>
+        <div className="mb-3">
+            <label className='form-label' htmlFor="googleId">Google ID:</label>
             <input
                 type="text"
                 className="form-control"
@@ -58,8 +60,8 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
                 onChange={handleChange}
             />
         </div>
-        <div className="form-group">
-            <label htmlFor="firstName">First Name:</label>
+        <div className="mb-3">
+            <label className='form-label' htmlFor="firstName">First Name:</label>
             <input
                 type="text"
                 className="form-control"
@@ -69,8 +71,8 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
                 onChange={handleChange}
             />
         </div>
-        <div className="form-group">
-            <label htmlFor="lastName">Last Name:</label>
+        <div className="mb-3">
+            <label className='form-label' htmlFor="lastName">Last Name:</label>
             <input
                 type="text"
                 className="form-control"
@@ -80,8 +82,8 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
                 onChange={handleChange}
             />
         </div>
-        <div className="form-group">
-            <label htmlFor="email">Email:</label>
+        <div className="mb-3">
+            <label className='form-label' htmlFor="email">Email:</label>
             <input
                 type="email"
                 className="form-control"
@@ -91,8 +93,8 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
                 onChange={handleChange}
             />
         </div>
-        <div className="form-group">
-            <label htmlFor="birthday">Birthday:</label>
+        <div className="mb-3">
+            <label className='form-label' htmlFor="birthday">Birthday:</label>
             <input
                 type="date"
                 className="form-control"
@@ -102,8 +104,8 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
                 onChange={handleChange}
             />
         </div>
-        <div className="form-group">
-            <label htmlFor="city">City:</label>
+        <div className="mb-3">
+            <label className='form-label' htmlFor="city">City:</label>
             <input
                 type="text"
                 className="form-control"
@@ -208,7 +210,6 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
           <button type="submit" className="btn btn-large btn-primary">Sign up</button>
         </div>
     </form>
-        </div>
       </div>
 
   </div>
