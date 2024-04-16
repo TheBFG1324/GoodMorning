@@ -1,6 +1,25 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import axiosInstance from '../axios';
 import { useUser } from '../userContext';
+import { GoogleLogin } from 'react-google-login';
+import { jwtDecode } from "jwt-decode";
+
+// Callback function on successful login
+const responseGoogle = (response) => {
+  console.log('Success:', response);
+  const decodedToken = jwtDecode(response.credential)
+        const email = decodedToken.email
+        const googleId = CryptoJS.SHA256(decodedToken.sub).toString();
+  // You can now use the response.tokenObj.access_token to make requests to your backend
+}
+
+// Callback function on login failure
+const handleFailure = (error) => {
+  console.error('Failed to login:', error);
+}
+
+
 
 const EnrollUserForm = ({ updateMorningBriefing }) => {
   const { updateUser } = useUser();
@@ -34,7 +53,7 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/enroll-user', { user });
+      const response = await axiosInstance.post('/enroll-user', { user });
       console.log(response.data); // handle success response here
       setEnrolled(true);
       updateUser(user); // Update user data in context
@@ -46,6 +65,16 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
 
   return (
     <div className='container'>
+
+<div>
+      <GoogleLogin
+        clientId="77518070221-18nm814qe2a6hf0b6gfo2pnv64762d1o.apps.googleusercontent.com" // Replace with your Google Client ID
+        buttonText="Login with Google"
+        onSuccess={responseGoogle}
+        onFailure={handleFailure}
+        cookiePolicy={'single_host_origin'}
+      />
+    </div>
       <h1 className='mt-4'>Enroll Page</h1>
       <div className="mt-4">
         <form className='mt-4' onSubmit={handleSubmit}>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import axiosInstance from '../axios';
 import { useUser } from '../userContext';
 
 const Account = () => {
@@ -41,7 +42,7 @@ const Account = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.put(`/update-user/${user.googleId}`, formData);
+      const response = await axiosInstance.put(`/update-user/${user.googleId}`, formData);
       console.log(response.data);
       setMessage('User data updated successfully!');
     } catch (error) {

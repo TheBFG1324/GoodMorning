@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import axiosInstance from '../axios';
 import { useUser } from '../userContext';
 
 const MorningBriefing = () => {
@@ -21,23 +22,10 @@ const MorningBriefing = () => {
     const fetchData = async () => {
       if (user) {
         try {
-          const response = await axios.get(`/get-briefing/${user.googleId}`);
+          const response = await axiosInstance.get(`/get-briefing/${user.googleId}`);
           setBriefingData(response.data);
         } catch (error) {
           console.error('Error fetching briefing data:', error);
-          // For testing purposes, set default data
-          setBriefingData({
-            firstName: 'John',
-            lastName: 'Doe',
-            city: 'Lawrence',
-            weather: '75',
-            vocabWord: 'Serendipity',
-            foreignWord: 'Bonjour',
-            mindfulnessQuote: 'Be present in the moment.',
-            joke: 'Why was the math book sad? Because it had too many problems.',
-            news: 'Breaking news: New discovery in space.',
-            bookRec: 'The Alchemist by Paulo Coelho',
-          });
         }
       }
     };
@@ -48,7 +36,7 @@ const MorningBriefing = () => {
 
   const handleCustomizationUpdate = async () => {
     try {
-      await axios.put(`/change-customization`, {
+      await axiosInstance.put(`/change-customization`, {
         googleId: user.googleId,
         customizationData: formData,
       });
@@ -78,72 +66,10 @@ const MorningBriefing = () => {
   return (
     <div className='container mt-4'>
       <h1>Morning Briefing</h1>
-      <div className='row row-cols-1 row-cols-md-2 g-4'>
+      <div className=''>
         {briefingData ? (
           <>
-            <div className='col'>
-                <div className=''>
-                  <h5 className=''>Hello {briefingData.firstName} {briefingData.lastName} from {briefingData.city}</h5>
-                </div>
-            </div>
-            <div className='col'>
-            </div>
-            <div className='col'>
-              <div className='card'>
-                <div className='card-body'>
-                  <h5 className='card-title'>Daily Weather</h5>
-                  <p className='card-text'>Temperature: {briefingData.weather}°F</p>
-                </div>
-              </div>
-            </div>
-            <div className='col'>
-              <div className='card'>
-                <div className='card-body'>
-                  <h5 className='card-title'>Word of the Day</h5>
-                  <p className='card-text'>{briefingData.vocabWord}</p>
-                </div>
-              </div>
-            </div>
-            <div className='col'>
-              <div className='card'>
-                <div className='card-body'>
-                  <h5 className='card-title'>Foreign Word of the Day</h5>
-                  <p className='card-text'>{briefingData.foreignWord}</p>
-                </div>
-              </div>
-            </div>
-            <div className='col'>
-              <div className='card'>
-                <div className='card-body'>
-                  <h5 className='card-title'>Mindfulness Quote of the Day</h5>
-                  <p className='card-text'>{briefingData.mindfulnessQuote}</p>
-                </div>
-              </div>
-            </div>
-            <div className='col'>
-              <div className='card'>
-                <div className='card-body'>
-                  <h5 className='card-title'>Joke of the Day</h5>
-                  <p className='card-text'>Need a laugh: {briefingData.joke}</p>
-                </div>
-              </div>
-            </div>
-            <div className='col'>
-              <div className='card'>
-                <div className='card-body'>
-                  <h5 className='card-title'>Daily News</h5>
-                  <p className='card-text'>Today's Headlines: {briefingData.news}</p>
-                </div>
-              </div>
-            </div>
-            <div className='col'>
-              <div className='card'>
-                <div className='card-body'>
-                  <h5 className='card-title'>Book Recommendation</h5>
-                  <p className='card-text'>Here's your next read: {briefingData.bookRec}</p>
-                </div>
-              </div>
-            </div>
+            <p className=''>{briefingData}</p>
             <div className='col'>
               <button type="button" className="btn btn-large btn-primary" onClick={handleShowModal}>Customize Briefing</button>
             </div>

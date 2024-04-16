@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axiosInstance from '../axios';
 import { useUser } from '../userContext';
 
 const HistoryComponent = () => {
@@ -10,7 +11,7 @@ const HistoryComponent = () => {
     if (user) {
       const fetchHistory = async () => {
         try {
-          const response = await fetch(`/get-history/${user.googleId}`);
+          const response = await axiosInstance.get(`/get-history/${user.googleId}`);
           if (!response.ok) {
             if (response.status === 404) {
               throw new Error('No history found for this user.');
@@ -36,9 +37,10 @@ const HistoryComponent = () => {
         <ul>
           {historyData.map((item, index) => (
             <li key={index}>
-              <strong>Date:</strong> {item.date}<br />
+              <strong>Instance: </strong> {item.data}<br />
+              {/* <strong>Date:</strong> {item.date}<br />
               <strong>Instance ID:</strong> {item.instanceId}<br />
-              <strong>Briefing:</strong> {item.briefing}
+              <strong>Briefing:</strong> {item.briefing} */}
             </li>
           ))}
         </ul>
