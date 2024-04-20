@@ -13,14 +13,10 @@ const HistoryComponent = () => {
         try {
           const response = await axiosInstance.get(`/get-history/${user.googleId}`);
           if (!response.ok) {
-            if (response.status === 404) {
-              throw new Error('No history found for this user.');
-            } else {
-              throw new Error('Internal server error.');
-            }
+            console.log("Error fetching: ", error);
           }
-          const data = await response.json();
-          setHistoryData(data);
+          const data = await response.data;
+          setHistoryData(response.data);
         } catch (error) {
           setError(error.message);
         }
@@ -32,23 +28,23 @@ const HistoryComponent = () => {
 
   return (
     <div>
-      <h2>History Data</h2>
+      <h2 className='mt-4'>History Data</h2>
       {historyData.length > 0 ? (
-        <ul>
+        <ul className='list-group'>
           {historyData.map((item, index) => (
-            <li key={index}>
-              <strong>Instance: </strong> {item.data}<br />
-              {/* <strong>Date:</strong> {item.date}<br />
-              <strong>Instance ID:</strong> {item.instanceId}<br />
-              <strong>Briefing:</strong> {item.briefing} */}
+            <li key={index} className="list-group-item">
+              <strong>Instance: </strong> {item.instanceId}<br />
+              <strong>Date:</strong> {item.date}<br />
+              <strong>Briefing:</strong> {item.briefing}<br />
             </li>
           ))}
         </ul>
       ) : (
-        <p>No history data available.</p>
+        <p className="mt-3">No history data available.</p>
       )}
-      {error && <p>Error: {error}</p>}
+      {error && <p className="text-danger mt-3">Error: {error}</p>}
     </div>
+    
   );
 };
 

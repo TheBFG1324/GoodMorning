@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import axiosInstance from '../axios';
 import { useUser } from '../userContext';
 
 const Account = () => {
-  const { user } = useUser();
+  const { user, updateUser } = useUser(); 
   const [formData, setFormData] = useState({
-    googleId: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -19,7 +17,6 @@ const Account = () => {
   useEffect(() => {
     if (user) {
       setFormData({
-        googleId: user.googleId || '',
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.email || '',
@@ -43,8 +40,12 @@ const Account = () => {
     e.preventDefault();
     try {
       const response = await axiosInstance.put(`/update-user/${user.googleId}`, formData);
-      console.log(response.data);
-      setMessage('User data updated successfully!');
+      if (response.status === 200) {
+        setMessage('User data updated successfully!');
+        updateUser({ ...user, ...formData });
+      } else {
+        setErrorMessage('Failed to update user');
+      }
     } catch (error) {
       console.error('Error updating user:', error);
       setErrorMessage('Error updating user data.');
@@ -59,12 +60,6 @@ const Account = () => {
         <h2>User Data</h2>
         {user ? (
           <div>
-            <p>Google ID: {user.googleId}</p>
-            <p>First Name: {user.firstName}</p>
-            <p>Last Name: {user.lastName}</p>
-            <p>Email: {user.email}</p>
-            <p>Birthday: {user.birthday}</p>
-            <p>City: {user.city}</p>
           </div>
         ) : (
           <p>No User Data Found!</p>

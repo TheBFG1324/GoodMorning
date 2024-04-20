@@ -1,21 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import axiosInstance from '../axios';
 import { useUser } from '../userContext';
 
 const MorningBriefing = () => {
-  const { user } = useUser();
+  const { user, updateUser } = useUser();
+  const [message, setMessage] = useState('');
+
   const [briefingData, setBriefingData] = useState(null);
   const [rerenderTrigger, setRerenderTrigger] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
-    bookRec: true,
-    mindfulnessQuote: true,
-    joke: true,
-    vocabWord: true,
-    foreignWord: true,
-    news: true,
-    weather: true
+    bookRec: false,
+    mindfulnessQuote: false,
+    joke: false,
+    vocabWord: false,
+    foreignWord: '',
+    news: false,
+    weather: false
   });
 
   useEffect(() => {
@@ -25,11 +26,10 @@ const MorningBriefing = () => {
           const response = await axiosInstance.get(`/get-briefing/${user.googleId}`);
           setBriefingData(response.data);
         } catch (error) {
-          console.error('Error fetching briefing data:', error);
+          console.error('Error fetching briefing data:', error, user);
         }
       }
     };
-
     fetchData();
   }, [user, rerenderTrigger]);
 
@@ -40,7 +40,7 @@ const MorningBriefing = () => {
         googleId: user.googleId,
         customizationData: formData,
       });
-      alert('Customization updated successfully');
+      setMessage('User data updated successfully!');
       setRerenderTrigger((prev) => !prev);
       handleCloseModal(); // Close modal after successful update
     } catch (error) {
@@ -53,8 +53,8 @@ const MorningBriefing = () => {
   const handleCloseModal = () => setShowModal(false);
 
   const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: checked }));
   };
 
   const handleSubmitForm = (e) => {
@@ -62,14 +62,13 @@ const MorningBriefing = () => {
     handleCustomizationUpdate();
   };
 
-
   return (
     <div className='container mt-4'>
       <h1>Morning Briefing</h1>
       <div className=''>
         {briefingData ? (
           <>
-            <p className=''>{briefingData}</p>
+            <p className=''>{briefingData.briefing}</p>
             <div className='col'>
               <button type="button" className="btn btn-large btn-primary" onClick={handleShowModal}>Customize Briefing</button>
             </div>
@@ -89,33 +88,33 @@ const MorningBriefing = () => {
               </div>
               <form onSubmit={handleSubmitForm}>
                 <div className="modal-body">
-                  <div className="mb-3">
+                  <div className="mb-3  form-check">
                     <label htmlFor="bookRec">Book Recommendation</label>
-                    <input type="checkbox" id="bookRec" name="bookRec" checked={formData.bookRec} onChange={handleFormChange} />
+                    <input className="form-check-input" type="checkbox" id="bookRec" name="bookRec" checked={formData.bookRec} onChange={handleFormChange} />
                   </div>
-                  <div className="mb-3">
+                  <div className="mb-3  form-check">
                     <label htmlFor="mindfulnessQuote">Mindfulness Quote</label>
                     <input type="checkbox" id="mindfulnessQuote" name="mindfulnessQuote" checked={formData.mindfulnessQuote} onChange={handleFormChange} />
                   </div>
-                  <div className="mb-3">
+                  <div className="mb-3  form-check">
                     <label htmlFor="bookRec">Joke</label>
-                    <input type="checkbox" id="joke" name="joke" checked={formData.joke} onChange={handleFormChange} />
+                    <input className="form-check-input" type="checkbox" id="joke" name="joke" checked={formData.joke} onChange={handleFormChange} />
                   </div>
-                  <div className="mb-3">
+                  <div className="mb-3  form-check">
                     <label htmlFor="bookRec">Vocabulary Word</label>
-                    <input type="checkbox" id="vocabWord" name="vocabWord" checked={formData.vocabWord} onChange={handleFormChange} />
+                    <input className="form-check-input" type="checkbox" id="vocabWord" name="vocabWord" checked={formData.vocabWord} onChange={handleFormChange} />
                   </div>
-                  <div className="mb-3">
+                  <div className="mb-3  form-check">
                     <label htmlFor="bookRec">Foreign Word</label>
-                    <input type="checkbox" id="foreignWord" name="foreignWord" checked={formData.foreignWord} onChange={handleFormChange} />
+                    <input className="form-check-input" type="checkbox" id="foreignWord" name="foreignWord" checked={formData.foreignWord} onChange={handleFormChange} />
                   </div>
-                  <div className="mb-3">
+                  <div className="mb-3  form-check">
                     <label htmlFor="bookRec">News</label>
-                    <input type="checkbox" id="news" name="news" checked={formData.news} onChange={handleFormChange} />
+                    <input className="form-check-input" type="checkbox" id="news" name="news" checked={formData.news} onChange={handleFormChange} />
                   </div>
-                  <div className="mb-3">
+                  <div className="mb-3 form-check">
                     <label htmlFor="bookRec">Weather</label>
-                    <input type="checkbox" id="weather" name="weather" checked={formData.weather} onChange={handleFormChange} />
+                    <input className="form-check-input" type="checkbox" id="weather" name="weather" checked={formData.weather} onChange={handleFormChange} />
                   </div>
                 </div>
                 <div className="modal-footer">

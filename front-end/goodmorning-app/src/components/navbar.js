@@ -33,31 +33,31 @@ const Navbar = () => {
               className={`nav-item ${activeTab === 'morningBriefing' ? 'active' : ''}`}
               onClick={() => handleTabChange('morningBriefing')}
             >
-              <a className="nav-link" href="#">Briefing</a>
+              <p className="nav-link" >Briefing</p>
             </li>
             <li
               className={`nav-item ${activeTab === 'about' ? 'active' : ''}`}
               onClick={() => handleTabChange('about')}
             >
-              <a className="nav-link" href="#">About</a>
+              <p className="nav-link">About</p>
             </li>
             <li
               className={`nav-item ${activeTab === 'enroll' ? 'active' : ''}`}
               onClick={() => handleTabChange('enroll')}
             >
-              <a className="nav-link" href="#">Enroll</a>
+              <p className="nav-link">Enroll</p>
             </li>
             <li
               className={`nav-item ${activeTab === 'account' ? 'active' : ''}`}
               onClick={() => handleTabChange('account')}
             >
-              <a className="nav-link" href="#">Account</a>
+              <p className="nav-link">Account</p>
             </li>
             <li
               className={`nav-item ${activeTab === 'history' ? 'active' : ''}`}
               onClick={() => handleTabChange('history')}
             >
-              <a className="nav-link" href="#">History</a>
+              <p className="nav-link">History</p>
             </li>
           </ul>
         </div>

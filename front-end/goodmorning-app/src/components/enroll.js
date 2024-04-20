@@ -1,25 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import axiosInstance from '../axios';
 import { useUser } from '../userContext';
-import { GoogleLogin } from 'react-google-login';
-import { jwtDecode } from "jwt-decode";
-
-// Callback function on successful login
-const responseGoogle = (response) => {
-  console.log('Success:', response);
-  const decodedToken = jwtDecode(response.credential)
-        const email = decodedToken.email
-        const googleId = CryptoJS.SHA256(decodedToken.sub).toString();
-  // You can now use the response.tokenObj.access_token to make requests to your backend
-}
-
-// Callback function on login failure
-const handleFailure = (error) => {
-  console.error('Failed to login:', error);
-}
-
-
 
 const EnrollUserForm = ({ updateMorningBriefing }) => {
   const { updateUser } = useUser();
@@ -30,50 +11,53 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
     email: '',
     birthday: '',
     city: '',
-    customization: {
-      bookRec: false,
-      mindfulnessQuote: false,
-      joke: false,
-      vocabWord: false,
-      foreignWord: false,
-      news: false,
-      weather: false,
-    },
   });
+  const [ customization, setCustomization ] = useState({
+    bookRec: false,
+    mindfulnessQuote: false,
+    joke: false,
+    vocabWord: false,
+    foreignWord: '',
+    news: false,
+    weather: false,
+  })
   const [enrolled, setEnrolled] = useState(false);
+  const [message, setMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setUser((prevUser) => ({
-      ...prevUser,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    const { name, type, checked, value } = e.target;
+    if (name.startsWith('customization.')) {
+      const key = name.split('.')[1];
+      setCustomization((prevCustomization) => ({
+        ...prevCustomization,
+        [key]: type === 'checkbox' ? checked : value,
+      }));
+    } else {
+      setUser((prevUser) => ({
+        ...prevUser,
+        [name]: type === 'checkbox' ? checked : value,
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axiosInstance.post('/enroll-user', { user });
-      console.log(response.data); // handle success response here
+      const response = await axiosInstance.post('/enroll-user', { user, customization });
       setEnrolled(true);
-      updateUser(user); // Update user data in context
-      updateMorningBriefing(user); // Pass user data to updateMorningBriefing function
+      updateUser({ ...user, customization });
+      setMessage('User enrolled successfully!');
     } catch (error) {
       console.error('Error enrolling user:', error);
+      setErrorMessage('Error enrolling user.');
     }
   };
 
   return (
     <div className='container'>
 
-<div>
-      <GoogleLogin
-        clientId="77518070221-18nm814qe2a6hf0b6gfo2pnv64762d1o.apps.googleusercontent.com" // Replace with your Google Client ID
-        buttonText="Login with Google"
-        onSuccess={responseGoogle}
-        onFailure={handleFailure}
-        cookiePolicy={'single_host_origin'}
-      />
+    <div>
     </div>
       <h1 className='mt-4'>Enroll Page</h1>
       <div className="mt-4">
@@ -150,7 +134,7 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
                 className="form-check-input"
                 id="bookRec"
                 name="customization.bookRec"
-                checked={user.customization.bookRec}
+                checked={customization.bookRec}
                 onChange={handleChange}
             />
             <label className="form-check-label" htmlFor="bookRec">
@@ -163,7 +147,7 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
                 className="form-check-input"
                 id="mindfulnessQuote"
                 name="customization.mindfulnessQuote"
-                checked={user.customization.mindfulnessQuote}
+                checked={customization.mindfulnessQuote}
                 onChange={handleChange}
             />
             <label className="form-check-label" htmlFor="mindfulnessQuote">
@@ -176,7 +160,7 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
                 className="form-check-input"
                 id="joke"
                 name="customization.joke"
-                checked={user.customization.joke}
+                checked={customization.joke}
                 onChange={handleChange}
             />
             <label className="form-check-label" htmlFor="joke">
@@ -189,7 +173,7 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
                 className="form-check-input"
                 id="vocabWord"
                 name="customization.vocabWord"
-                checked={user.customization.vocabWord}
+                checked={customization.vocabWord}
                 onChange={handleChange}
             />
             <label className="form-check-label" htmlFor="vocabWord">
@@ -202,7 +186,7 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
                 className="form-check-input"
                 id="foreignWord"
                 name="customization.foreignWord"
-                checked={user.customization.foreignWord}
+                checked={customization.foreignWord}
                 onChange={handleChange}
             />
             <label className="form-check-label" htmlFor="foreignWord">
@@ -215,7 +199,7 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
                 className="form-check-input"
                 id="news"
                 name="customization.news"
-                checked={user.customization.news}
+                checked={customization.news}
                 onChange={handleChange}
             />
             <label className="form-check-label" htmlFor="news">
@@ -228,7 +212,7 @@ const EnrollUserForm = ({ updateMorningBriefing }) => {
                 className="form-check-input"
                 id="weather"
                 name="customization.weather"
-                checked={user.customization.weather}
+                checked={customization.weather}
                 onChange={handleChange}
             />
             <label className="form-check-label" htmlFor="weather">
