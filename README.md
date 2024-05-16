@@ -58,5 +58,3 @@
      - On Error: Status code 500 with an error message
 
 # There are example calls to these routes in ./back-end/test.js
-
-# Important Note!!!: I still need to deploy the server, I will be working on this soon, so thats why in test.js it has the url: localhost:3000. 
