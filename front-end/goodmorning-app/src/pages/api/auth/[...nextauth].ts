@@ -5,8 +5,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-console.log("HERE", process.env.GOOGLE_CLOUD_CLIENT_ID)
-
 export default NextAuth({
   providers: [
     GoogleProvider({
@@ -16,17 +14,29 @@ export default NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
+      console.log('User:', user);
+      console.log('Account:', account);
+      console.log('Profile:', profile);
+      console.log('Email:', email);
+      debugger;
       return true;
     },
     async redirect({ url, baseUrl }) {
-      return baseUrl;
+      return `${baseUrl}/login`;
     },
     async session({ session, user }) {
+      console.log('Session:', session);
+      console.log('User:', user);
       return session;
     },
-    async jwt({ token, user, account, profile, isNewUser }) {
+    async jwt({ token, user, account, profile }) {
+      console.log('Token:', token);
+      console.log('User:', user);
+      console.log('Account:', account);
+      console.log('Profile:', profile);
       return token;
     },
   },
+  debug: true, // Enable debug mode
 });
 

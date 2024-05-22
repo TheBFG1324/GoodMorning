@@ -1,11 +1,14 @@
-// pages/login.tsx
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 
 const Login = () => {
+  const { data: session, status } = useSession();
+
   useEffect(() => {
-    signIn('google');
-  }, []);
+    if (status === 'authenticated') {
+      console.log('Session:', session);
+    }
+  }, [session, status]);
 
   return (
     <div>
