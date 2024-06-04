@@ -2,8 +2,16 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import dotenv from 'dotenv';
+import { jwtDecode } from 'jwt-decode';
+import CryptoJS from 'crypto-js';
 
 dotenv.config();
+
+interface DecodedToken {
+  email: string;
+  sub: string;
+  [key: string]: any;
+}
 
 export default NextAuth({
   providers: [
@@ -12,31 +20,36 @@ export default NextAuth({
       clientSecret: process.env.GOOGLE_CLOUD_CLIENT_SECRET!,
     }),
   ],
+  secret: process.env.NEXTAUTH_SECRET, 
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
+    async signIn({ user, account, profile }) {
       console.log('User:', user);
       console.log('Account:', account);
       console.log('Profile:', profile);
-      console.log('Email:', email);
-      debugger;
       return true;
     },
     async redirect({ url, baseUrl }) {
-      return `${baseUrl}/login`;
+      return baseUrl;
     },
-    async session({ session, user }) {
-      console.log('Session:', session);
-      console.log('User:', user);
+    async session({ session, token }) {
+      
+      if (session.user) {
+        session.user.googleId = token.googleId as string;
+        session.user.email = token.email as string;
+      }
+    
       return session;
     },
-    async jwt({ token, user, account, profile }) {
-      console.log('Token:', token);
-      console.log('User:', user);
-      console.log('Account:', account);
-      console.log('Profile:', profile);
+    async jwt({ token, account }) {
+
+      if (account && account.id_token) {
+        const decodedToken: DecodedToken = jwtDecode(account.id_token);
+        token.email = decodedToken.email;
+        token.googleId = CryptoJS.SHA256(decodedToken.sub).toString();
+      }
+
       return token;
     },
   },
-  debug: true, // Enable debug mode
+  debug: true, 
 });
-
