@@ -1,60 +1,36 @@
+# GoodMorning
 
-# GoodMorning customizable briefing platform
+## Overview
 
-## Back End Info
+GoodMorning is an innovative application designed to help users start their day informed and inspired by creating personalized daily briefings. This application brings all essential morning information into one place, streamlining the user’s morning routine.
 
-### Routes
+## Features
 
-1. **POST `/enroll-user`**
-   - **Request Info:**
-     - `user` (object):
-       - `googleId` (string)
-       - `firstName` (string)
-       - `lastName` (string)
-       - `email` (string)
-       - `birthday` (date)
-       - `city` (string)
-     - `customization` (object):
-       - `bookRec` (bool)
-       - `mindfulnessQuote` (bool)
-       - `joke` (bool)
-       - `vocabWord` (bool)
-       - `foreignWord` (string)
-       - `news` (bool)
-       - `weather` (bool)
-   - **Return Values:**
-     - On Success: Status code 201 with a message 'User and customization enrolled successfully'
-     - On Error: Status code 500 with an error message
+- **Daily Briefings:** 
+  - Personalized content including:
+    - Foreign word of the day
+    - Mindfulness quote
+    - Book recommendations
+    - Weather updates
+    - Scheduled events synced from Google Calendar
+  - Integrated with APIs for geolocation, weather, and relevant news.
+  
+- **Smart Content Generation:**
+  - Utilizes the **OpenAI API** to provide intelligent, contextually relevant suggestions, enhancing user experience.
 
-2. **PUT `/change-customization`**
-   - **Request Info:**
-     - `googleId` (string)
-     - `customizationData` (object):
-       - Updated values for `bookRec`, `mindfulnessQuote`, `joke`, `vocabWord`, `foreignWord`, `news`, `weather`
-   - **Return Values:**
-     - On Success: Status code 200 with a message 'Customization updated successfully'
-     - On Error: Status code 500 with an error message
+- **Integration:**
+  - Seamless sync with **Google Calendar** for scheduled events.
 
-3. **GET `/get-briefing/:googleId`**
-   - **Request Info:**
-     - URL parameter: `googleId` (string)
-   - **Return Values:**
-     - On Success: Status code 200 with JSON containing `instanceId` (string) and `briefing` (text)
-     - On Error: Status code 500 with an error message
+## Technology Stack
 
-4. **GET `/get-history/:googleId`**
-   - **Request Info:**
-     - URL parameter: `googleId` (string)
-   - **Return Values:**
-     - On Success: Status code 200 with a JSON array of history objects, each containing `date` (date), `instanceId` (string), and `briefing` (text)
-     - On Error: Status code 404 with message 'No history found for this user.' or Status code 500 with an error message
+- **Frontend:** Next.js
+- **Backend:** Express.js
+- **Database:** PostgreSQL (hosted on Microsoft Azure)
+- **APIs and Integrations:**
+  - Google Calendar API
+  - Geolocation API
+  - Weather API
+  - News API
+  - OpenAI API
+- **Hosting and Deployment:** Microsoft Azure and AWS
 
-5. **PUT `/update-user/:googleId`**
-   - **Request Info:**
-     - URL parameter: `googleId` (string)
-     - `userData` (object): Contains any user fields that need to be updated
-   - **Return Values:**
-     - On Success: Status code 200 with a message 'User updated successfully'
-     - On Error: Status code 500 with an error message
-
-# There are example calls to these routes in ./back-end/test.js
